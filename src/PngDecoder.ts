@@ -21,6 +21,7 @@ import {
 
 export default class PngDecoder extends IOBuffer {
   private readonly _checkCrc: boolean;
+  private readonly _onlyMetadata: boolean;
   private readonly _inflator: Inflator;
   private readonly _png: DecodedPng;
   private _end: boolean;
@@ -35,8 +36,9 @@ export default class PngDecoder extends IOBuffer {
 
   public constructor(data: DecoderInputType, options: PngDecoderOptions = {}) {
     super(data);
-    const { checkCrc = false } = options;
+    const { checkCrc = false, onlyMetadata = false } = options;
     this._checkCrc = checkCrc;
+    this._onlyMetadata = onlyMetadata;
     this._inflator = new Inflator();
     this._png = {
       width: -1,
@@ -65,7 +67,9 @@ export default class PngDecoder extends IOBuffer {
     while (!this._end) {
       this.decodeChunk();
     }
-    this.decodeImage();
+    if(!this._onlyMetadata) {
+      this.decodeImage();
+    }
     return this._png;
   }
 
@@ -78,6 +82,9 @@ export default class PngDecoder extends IOBuffer {
       // 11.2 Critical chunks
       case 'IHDR': // 11.2.2 IHDR Image header
         this.decodeIHDR();
+        if(this._onlyMetadata) {
+          this._end = true;
+        }
         break;
       case 'PLTE': // 11.2.3 PLTE Palette
         this.decodePLTE(length);

@@ -59,6 +59,7 @@ export interface DecodedPng {
 
 export interface PngDecoderOptions {
   checkCrc?: boolean;
+  onlyMetadata?: boolean;
 }
 
 export interface PngEncoderOptions {
